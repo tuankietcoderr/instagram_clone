@@ -1,25 +1,33 @@
-import { View, Text, Image } from "react-native";
-import React, { useState } from "react";
+import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faChevronDown, faPlus } from "@fortawesome/free-solid-svg-icons";
-import { faStar } from "@fortawesome/free-regular-svg-icons";
-import { TouchableOpacity } from "react-native";
-import { Messenger, PlusSquare, UserGroup } from "../icons";
 import { useNavigation } from "@react-navigation/native";
+import React, { useContext, useState } from "react";
+import {
+  FlatList,
+  Image,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
+import { ClickedModal, PostCard, StoryBar } from "../components";
+import { PostContext } from "../context/PostContext";
+import { Messenger, PlusSquare } from "../icons";
 
 const Home = () => {
   const navigation = useNavigation();
-
+  const { posts, setPage } = useContext(PostContext);
   const [modalOpen, setModalOpen] = useState(false);
   return (
     <>
-      <View className="flex-row justify-between bg-white px-4 relative">
+      <View className="flex-row justify-between bg-white px-4 relative z-10">
         <View className="flex-row items-center">
-          <Image
-            source={require("../assets/Instagram_text_logo.svg.png")}
-            className="w-[120px] h-[60px]"
-            resizeMode="contain"
-          />
+          <TouchableWithoutFeedback onPress={() => setModalOpen(!modalOpen)}>
+            <Image
+              source={require("../assets/Instagram_text_logo.svg.png")}
+              className="w-[120px] h-[60px]"
+              resizeMode="contain"
+            />
+          </TouchableWithoutFeedback>
           <TouchableOpacity onPress={() => setModalOpen(!modalOpen)}>
             <FontAwesomeIcon icon={faChevronDown} size={14} />
           </TouchableOpacity>
@@ -34,23 +42,30 @@ const Home = () => {
         </View>
         {modalOpen && <ClickedModal />}
       </View>
+      <FlatList
+        className="bg-white"
+        data={posts}
+        renderItem={({ item, index }) => (
+          <PostCard
+            key={item.id + index.toString() + item.src.original}
+            post={item}
+            index={index}
+          />
+        )}
+        keyExtractor={(item, index) =>
+          item.id + index.toString() + item.src.original
+        }
+        initialNumToRender={10}
+        ListHeaderComponent={<StoryBar />}
+        onEndReached={() => {
+          setPage((prev) => prev + 1);
+          console.log("Reached");
+        }}
+        onEndReachedThreshold={1}
+        showsVerticalScrollIndicator={false}
+      />
     </>
   );
 };
 
 export default Home;
-
-const ClickedModal = () => {
-  return (
-    <View className="absolute top-[100%] left-4 bg-white rounded-md w-[150px] border-gray-200 border">
-      <TouchableOpacity className="flex-row justify-between p-2 border-b border-gray-200">
-        <Text>Following</Text>
-        <UserGroup width={20} height={20} />
-      </TouchableOpacity>
-      <TouchableOpacity className="flex-row p-2 justify-between">
-        <Text>Favorites</Text>
-        <FontAwesomeIcon icon={faStar} size={20} />
-      </TouchableOpacity>
-    </View>
-  );
-};
